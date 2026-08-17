@@ -1,11 +1,9 @@
 from contextlib import asynccontextmanager
-from collections.abc import AsyncGenerator
 
 from fastapi import FastAPI
-from sqlalchemy.ext.asyncio import AsyncSession
 
+from forge.api.routes.runs import router as runs_router
 from forge.observability.logging import setup_logging
-from forge.storage.session import async_session
 
 
 @asynccontextmanager
@@ -15,11 +13,7 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(title="Forge", version="0.1.0", lifespan=lifespan)
-
-
-async def get_db() -> AsyncGenerator[AsyncSession, None]:
-    async with async_session() as session:
-        yield session
+app.include_router(runs_router)
 
 
 @app.get("/health")
