@@ -12,6 +12,7 @@ from forge.checkpoints.postgres import PostgresCheckpointSaver
 from forge.messaging.messages import RunRequestedMessage, RunResumeMessage
 from forge.messaging.rabbitmq import QUEUE_RUN_REQUESTED, QUEUE_RUN_RESUME, RabbitMQManager
 from forge.runtime.executor import RunExecutor
+from forge.runtime.recovery import recover_interrupted_runs
 
 logger = structlog.get_logger()
 
@@ -29,6 +30,10 @@ class Worker:
             loop.add_signal_handler(sig, self._handle_signal)
 
         await self.rabbitmq.connect()
+
+        recovered = await recover_interrupted_runs(self.executor)
+        if recovered > 0:
+            logger.info("recovered_runs", count=recovered)
 
         while self._running:
             try:
