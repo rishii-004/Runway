@@ -47,34 +47,34 @@ Read once, apply throughout:
 
 ## Phase 0 — Project Scaffolding
 
-- [ ] **0.1 Repo layout.** Create the directory tree from `prd.md` §19 as empty packages
+- [x] **0.1 Repo layout.** Create the directory tree from `prd.md` §19 as empty packages
   (`__init__.py` in each) under `forge/`: `api/{routes,schemas}`, `runtime/`, `agents/`,
   `tools/`, `policy/`, `budgets/`, `checkpoints/`, `messaging/`, `workers/`, `sandbox/`,
   `events/`, `evaluation/`, `observability/`, `storage/`, `tests/`.
   **Verify:** `python -c "import forge"` succeeds (add root `forge/__init__.py`).
 
-- [ ] **0.2 Dependency management.** `pyproject.toml` targeting Python 3.12+, with
+- [x] **0.2 Dependency management.** `pyproject.toml` targeting Python 3.12+, with
   `fastapi`, `pydantic`, `pydantic-settings`, `langgraph`, `langchain-core`, `sqlalchemy`,
   `alembic`, `asyncpg`, `aio-pika` (RabbitMQ), `redis`, `docker` (SDK), `opentelemetry-sdk`,
   `opentelemetry-exporter-otlp`, `prometheus-client`, `structlog`, dev deps `pytest`,
   `pytest-asyncio`, `testcontainers`, `ruff`, `mypy`.
   **Verify:** `uv sync` (or `pip install -e ".[dev]"`) completes cleanly.
 
-- [ ] **0.3 Settings & config.** `forge/config.py` — a `pydantic-settings` `Settings` class
+- [x] **0.3 Settings & config.** `forge/config.py` — a `pydantic-settings` `Settings` class
   reading `DATABASE_URL`, `RABBITMQ_URL`, `REDIS_URL`, `DOCKER_HOST`, `OTEL_EXPORTER_OTLP_ENDPOINT`
   from env, with a `.env.example` documenting each.
   **Verify:** `Settings()` loads with only `.env.example` values copied to `.env`.
 
-- [ ] **0.4 Local infra.** `docker-compose.yml` with `postgres:16`, `rabbitmq:3-management`,
+- [x] **0.4 Local infra.** `docker-compose.yml` with `postgres:16`, `rabbitmq:3-management`,
   `redis:7`, each with a healthcheck and a named volume. Add `prometheus` and `grafana`
   services now (config wired later in Phase 3) so the compose file doesn't churn.
   **Verify:** `podman compose up -d postgres rabbitmq redis` — all three report healthy.
 
-- [ ] **0.5 Structured logging.** `forge/observability/logging.py` — `structlog` JSON
+- [x] **0.5 Structured logging.** `forge/observability/logging.py` — `structlog` JSON
   logging setup, called once at process start in both the API and worker entrypoints.
   **Verify:** running the (stub) API logs one JSON line to stdout.
 
-- [ ] **0.6 Lint/test baseline.** `ruff` config in `pyproject.toml`, `pytest.ini`/`[tool.pytest.ini_options]`
+- [x] **0.6 Lint/test baseline.** `ruff` config in `pyproject.toml`, `pytest.ini`/`[tool.pytest.ini_options]`
   with `asyncio_mode = "auto"`, empty `tests/conftest.py`.
   **Verify:** `ruff check .` and `pytest` both run (0 tests, 0 errors) cleanly.
 
@@ -85,7 +85,7 @@ Read once, apply throughout:
 Goal (PRD success criterion): *kill a worker mid-run and have another worker resume it from
 persisted state.*
 
-- [ ] **1.1 DB models.** `forge/storage/models.py` (SQLAlchemy 2.0 declarative) for
+- [x] **1.1 DB models.** `forge/storage/models.py` (SQLAlchemy 2.0 declarative) for
   `agents`, `runs`, `run_steps`, `checkpoints`, `tool_calls`, `approvals`, `budgets`,
   `execution_events`, `evaluations`, `evaluation_results` per PRD §7.3. Minimal columns for
   now (id, fk's, status, timestamps, jsonb payload column) — widen later phases as needed
@@ -93,16 +93,16 @@ persisted state.*
   **Verify:** `alembic revision --autogenerate` produces a non-empty migration; `alembic upgrade head`
   against the compose Postgres succeeds.
 
-- [ ] **1.2 Pydantic schemas.** `forge/api/schemas/` — request/response models for `Agent`
+- [x] **1.2 Pydantic schemas.** `forge/api/schemas/` — request/response models for `Agent`
   and `Run` (matching the run lifecycle fields in PRD §7.1: `run_id, agent_id, task, status,
   current_node, iteration, started_at, completed_at`).
   **Verify:** schemas round-trip through `model_dump()`/`model_validate()` in a unit test.
 
-- [ ] **1.3 FastAPI skeleton.** `forge/api/main.py` with a `GET /health` route, DB session
+- [x] **1.3 FastAPI skeleton.** `forge/api/main.py` with a `GET /health` route, DB session
   dependency, and app lifespan that opens/closes the async engine.
   **Verify:** `uvicorn forge.api.main:app` boots; `curl localhost:8000/health` → 200.
 
-- [ ] **1.4 LangGraph adapter.** `forge/agents/langgraph_adapter.py` — wraps a compiled
+- [x] **1.4 LangGraph adapter.** `forge/agents/langgraph_adapter.py` — wraps a compiled
   LangGraph graph so the runtime can step through it node-by-node and read intermediate
   state after each node (not just invoke end-to-end). Add one trivial demo graph
   (`forge/agents/demo_echo_agent.py`, 2-3 nodes) purely to exercise the adapter in tests —
@@ -110,16 +110,16 @@ persisted state.*
   **Verify:** unit test drives the demo graph through the adapter and asserts state after
   each step.
 
-- [ ] **1.5 Checkpoint persistence.** `forge/checkpoints/postgres.py` — a LangGraph
+- [x] **1.5 Checkpoint persistence.** `forge/checkpoints/postgres.py` — a LangGraph
   `BaseCheckpointSaver` implementation backed by the `checkpoints`/`run_steps` tables.
   **Verify:** unit test: save a checkpoint, reload it in a fresh saver instance, state matches.
 
-- [ ] **1.6 Messaging layer.** `forge/messaging/messages.py` (Pydantic message schemas:
+- [x] **1.6 Messaging layer.** `forge/messaging/messages.py` (Pydantic message schemas:
   `run.requested`, `run.resume`) and `forge/messaging/rabbitmq.py` (connection, publish,
   consume via `aio-pika`, with manual ack).
   **Verify:** integration test — publish a `run.requested`, consume it back, ack, queue is empty.
 
-- [ ] **1.7 Runtime lifecycle & executor.** `forge/runtime/lifecycle.py` (state machine:
+- [x] **1.7 Runtime lifecycle & executor.** `forge/runtime/lifecycle.py` (state machine:
   `QUEUED → RUNNING → WAITING_FOR_APPROVAL → RUNNING → COMPLETED`, plus terminal
   `FAILED/CANCELLED/TIMEOUT/BUDGET_EXCEEDED`, with a table of legal transitions) and
   `forge/runtime/executor.py` (drives the LangGraph adapter one step at a time, persisting a
@@ -127,20 +127,20 @@ persisted state.*
   **Verify:** unit test runs the demo agent through the executor to completion; DB row
   ends in `COMPLETED` with the right `iteration` count.
 
-- [ ] **1.8 Basic retry/timeout.** Wrap LLM/tool invocation points in the executor with a
+- [x] **1.8 Basic retry/timeout.** Wrap LLM/tool invocation points in the executor with a
   small retry helper (exponential backoff, max attempts, per-call timeout) — configurable,
   not hardcoded (PRD §11). No policy engine yet; this is just resilience plumbing.
   **Verify:** unit test with a flaky stub tool (fails twice, succeeds 3rd try) completes
   without manual intervention; a stub that never succeeds ends the run `FAILED`.
 
-- [ ] **1.9 Scheduler & worker process.** `forge/runtime/scheduler.py` (enqueues
+- [x] **1.9 Scheduler & worker process.** `forge/runtime/scheduler.py` (enqueues
   `run.requested` when a run is submitted) and `forge/workers/worker.py` (long-running
   process: consumes `run.requested`/`run.resume`, calls the executor, acks on
   checkpoint-or-completion).
   **Verify:** start one worker process, submit a run via a script, observe it complete and
   the message get acked (queue depth returns to 0).
 
-- [ ] **1.10 Recovery.** `forge/runtime/recovery.py` — on worker startup, and on message
+- [x] **1.10 Recovery.** `forge/runtime/recovery.py` — on worker startup, and on message
   redelivery, load the latest checkpoint for the run and resume instead of restarting from
   node 0.
   **Verify (this is the Phase 1 exit criterion):** integration test — start a worker, submit
@@ -148,7 +148,7 @@ persisted state.*
   worker, assert the run completes and steps 1-3 are not re-executed (assert via a counter/spy
   in the demo agent's nodes, not just wall-clock).
 
-- [ ] **1.11 Minimal API surface.** `POST /agents`, `GET /agents/{id}`, `POST /runs`,
+- [x] **1.11 Minimal API surface.** `POST /agents`, `GET /agents/{id}`, `POST /runs`,
   `GET /runs/{id}`, `POST /runs/{id}/cancel` (cancel just flips a DB flag for now; the
   executor doesn't check it yet — that's Phase 2).
   **Verify:** end-to-end script: register agent → submit run → poll status → COMPLETED.
