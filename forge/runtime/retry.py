@@ -50,7 +50,7 @@ async def retry_with_backoff(
             else:
                 result = await func(*args, **kwargs)
             return result
-        except asyncio.TimeoutError as e:
+        except TimeoutError as e:
             last_error = e
             logger.warning(
                 "retry_timeout",

@@ -1,5 +1,5 @@
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from forge.api.schemas.agent import AgentCreate, AgentResponse, RunCreate, RunResponse
 
@@ -13,7 +13,7 @@ def test_agent_create_roundtrip():
 
 
 def test_agent_response_from_attributes():
-    now = datetime.now(tz=timezone.utc)
+    now = datetime.now(tz=UTC)
     agent = AgentResponse(
         id=uuid.uuid4(),
         name="test-agent",
@@ -44,7 +44,7 @@ def test_run_create_roundtrip():
 
 
 def test_run_response_roundtrip():
-    now = datetime.now(tz=timezone.utc)
+    now = datetime.now(tz=UTC)
     run = RunResponse(
         id=uuid.uuid4(),
         agent_id=uuid.uuid4(),

@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import asyncio
 import signal
-import uuid
 
 import structlog
 

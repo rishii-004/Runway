@@ -1,10 +1,9 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any, TypedDict
+from typing import Any
 
 import structlog
-from langgraph.graph import END, StateGraph
 from langgraph.graph.state import CompiledStateGraph
 
 logger = structlog.get_logger()
@@ -26,9 +25,7 @@ class LangGraphAdapter:
         input_state: dict[str, Any] | None,
         config: dict[str, Any],
     ) -> StepResult | None:
-        async for event in self.graph.astream(
-            input_state, config=config, stream_mode="updates"
-        ):
+        async for event in self.graph.astream(input_state, config=config, stream_mode="updates"):
             for node_name, output in event.items():
                 if node_name == "__interrupt__":
                     return StepResult(

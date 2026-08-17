@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import structlog
 from sqlalchemy import select
@@ -42,7 +42,7 @@ class RunExecutor:
 
             run.status = transition(run.status, RUNNING)
             if run.started_at is None:
-                run.started_at = datetime.now(tz=timezone.utc)
+                run.started_at = datetime.now(tz=UTC)
             await session.commit()
 
             thread_id = str(run_id)
@@ -61,7 +61,7 @@ class RunExecutor:
                     state = await self.adapter.aget_state(config)
                     run.status = COMPLETED
                     run.result = state
-                    run.completed_at = datetime.now(tz=timezone.utc)
+                    run.completed_at = datetime.now(tz=UTC)
                     run.iteration = step_number
                     await session.commit()
                     logger.info("run_completed", run_id=str(run_id), steps=step_number)
@@ -82,8 +82,8 @@ class RunExecutor:
                     node_name=result.node_name,
                     status="COMPLETED",
                     output_data=result.output,
-                    started_at=datetime.now(tz=timezone.utc),
-                    completed_at=datetime.now(tz=timezone.utc),
+                    started_at=datetime.now(tz=UTC),
+                    completed_at=datetime.now(tz=UTC),
                 )
                 session.add(step)
 
@@ -105,7 +105,7 @@ class RunExecutor:
                 if run:
                     run.status = FAILED
                     run.error = str(e)
-                    run.completed_at = datetime.now(tz=timezone.utc)
+                    run.completed_at = datetime.now(tz=UTC)
                     await session.commit()
             except Exception:
                 pass

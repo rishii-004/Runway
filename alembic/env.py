@@ -5,7 +5,6 @@ from sqlalchemy import pool
 from sqlalchemy.ext.asyncio import async_engine_from_config
 
 from alembic import context
-
 from forge.config import settings
 from forge.storage.models import Base
 

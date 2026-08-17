@@ -1,6 +1,6 @@
 import uuid
-from datetime import datetime, timezone
-from unittest.mock import AsyncMock, MagicMock, patch
+from datetime import UTC, datetime
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 from fastapi.testclient import TestClient
@@ -26,9 +26,9 @@ def mock_db():
 
     async def refresh(obj):
         if hasattr(obj, "created_at") and obj.created_at is None:
-            obj.created_at = datetime.now(tz=timezone.utc)
+            obj.created_at = datetime.now(tz=UTC)
         if hasattr(obj, "updated_at") and obj.updated_at is None:
-            obj.updated_at = datetime.now(tz=timezone.utc)
+            obj.updated_at = datetime.now(tz=UTC)
 
     mock_session.refresh = refresh
     mock_result.scalar_one_or_none.return_value = None
