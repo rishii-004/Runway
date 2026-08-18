@@ -10,6 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from forge.agents.langgraph_adapter import LangGraphAdapter
 from forge.checkpoints.postgres import PostgresCheckpointSaver
 from forge.runtime.lifecycle import (
+    CANCELLED,
     COMPLETED,
     FAILED,
     RUNNING,
@@ -50,6 +51,14 @@ class RunExecutor:
 
             step_number = run.iteration
             while True:
+                if await self._is_cancelled(session, run_id):
+                    run.status = CANCELLED
+                    run.completed_at = datetime.now(tz=UTC)
+                    run.iteration = step_number
+                    await session.commit()
+                    logger.info("run_cancelled", run_id=str(run_id), steps=step_number)
+                    return CANCELLED
+
                 step_number += 1
                 input_state = None
                 if run.iteration == 0:
@@ -116,3 +125,9 @@ class RunExecutor:
     async def _load_run(self, session: AsyncSession, run_id: uuid.UUID) -> Run | None:
         result = await session.execute(select(Run).where(Run.id == run_id))
         return result.scalar_one_or_none()
+
+    async def _is_cancelled(self, session: AsyncSession, run_id: uuid.UUID) -> bool:
+        run = await self._load_run(session, run_id)
+        if run is None:
+            return False
+        return run.status == CANCELLED

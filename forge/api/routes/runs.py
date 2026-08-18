@@ -1,14 +1,22 @@
 from __future__ import annotations
 
 import uuid
+from datetime import UTC, datetime
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from forge.api.deps import get_db
-from forge.api.schemas.agent import AgentCreate, AgentResponse, RunCreate, RunResponse
-from forge.storage.models import Agent, Budget, Run
+from forge.api.schemas.agent import (
+    AgentCreate,
+    AgentResponse,
+    ApprovalDecision,
+    ApprovalResponse,
+    RunCreate,
+    RunResponse,
+)
+from forge.storage.models import Agent, Approval, Budget, Run
 
 router = APIRouter()
 
@@ -94,3 +102,69 @@ async def cancel_run(run_id: uuid.UUID, db: AsyncSession = Depends(get_db)):
     await db.commit()
     await db.refresh(run)
     return run
+
+
+@router.post("/runs/{run_id}/approve", response_model=ApprovalResponse)
+async def approve_run(
+    run_id: uuid.UUID, body: ApprovalDecision, db: AsyncSession = Depends(get_db)
+):
+    result = await db.execute(select(Run).where(Run.id == run_id))
+    run = result.scalar_one_or_none()
+    if run is None:
+        raise HTTPException(status_code=404, detail="Run not found")
+
+    if run.status != "WAITING_FOR_APPROVAL":
+        raise HTTPException(
+            status_code=400,
+            detail=f"Run is not awaiting approval (current: {run.status})",
+        )
+
+    existing = await db.execute(
+        select(Approval).where(Approval.run_id == run_id)
+    )
+    approval = existing.scalar_one_or_none()
+    if approval is None:
+        raise HTTPException(status_code=404, detail="No pending approval for this run")
+
+    approval.decision = "APPROVED"
+    approval.decided_at = datetime.now(tz=UTC)
+    approval.decided_by = body.decided_by
+
+    run.status = "RUNNING"
+    await db.commit()
+    await db.refresh(approval)
+    return approval
+
+
+@router.post("/runs/{run_id}/deny", response_model=ApprovalResponse)
+async def deny_run(
+    run_id: uuid.UUID, body: ApprovalDecision, db: AsyncSession = Depends(get_db)
+):
+    result = await db.execute(select(Run).where(Run.id == run_id))
+    run = result.scalar_one_or_none()
+    if run is None:
+        raise HTTPException(status_code=404, detail="Run not found")
+
+    if run.status != "WAITING_FOR_APPROVAL":
+        raise HTTPException(
+            status_code=400,
+            detail=f"Run is not awaiting approval (current: {run.status})",
+        )
+
+    existing = await db.execute(
+        select(Approval).where(Approval.run_id == run_id)
+    )
+    approval = existing.scalar_one_or_none()
+    if approval is None:
+        raise HTTPException(status_code=404, detail="No pending approval for this run")
+
+    approval.decision = "DENIED"
+    approval.decided_at = datetime.now(tz=UTC)
+    approval.decided_by = body.decided_by
+
+    run.status = "FAILED"
+    run.error = "Tool execution denied by human operator"
+    run.completed_at = datetime.now(tz=UTC)
+    await db.commit()
+    await db.refresh(approval)
+    return approval
