@@ -287,12 +287,12 @@ Goal: prove the harness on real(ish) agents. These are consumers of Forge, not p
 itself — put them under `forge/agents/` alongside the demo echo agent, each with its own
 tool registrations and a small eval dataset.
 
-- [ ] **5.1 Code Review Agent.** Graph: analyze PR → find issues → generate patch → run
+- [x] **5.1 Code Review Agent.** Graph: analyze PR → find issues → generate patch → run
   tests (via sandbox, 3.1) → verify. Tools: repo read, patch apply, sandboxed `pytest`.
   **Verify:** point it at a small fixture repo with one seeded bug; it produces a patch and
   a passing sandboxed test run.
 
-- [ ] **5.2 Incident RCA Agent.** Graph: alert → metrics → logs → traces → hypothesis →
+- [x] **5.2 Incident RCA Agent.** Graph: alert → metrics → logs → traces → hypothesis →
   verification → optional remediation (remediation tool marked `requires_approval: true`,
   exercising Phase 2's HITL path for real).
   **Verify:** feed a synthetic alert + canned metrics/logs/traces fixtures; agent reaches a

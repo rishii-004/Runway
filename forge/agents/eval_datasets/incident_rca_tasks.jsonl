@@ -1,0 +1,5 @@
+{"alert": {"service": "api-gateway", "severity": "critical", "message": "High error rate detected", "timestamp": "2026-01-01T12:00:00Z"}}
+{"alert": {"service": "payment-service", "severity": "high", "message": "Latency spike on /checkout", "timestamp": "2026-01-01T13:00:00Z"}}
+{"alert": {"service": "user-service", "severity": "medium", "message": "Memory usage above 80%", "timestamp": "2026-01-01T14:00:00Z"}}
+{"alert": {"service": "notification-service", "severity": "high", "message": "Queue depth exceeding threshold", "timestamp": "2026-01-01T15:00:00Z"}}
+{"alert": {"service": "auth-service", "severity": "critical", "message": "Circuit breaker OPEN", "timestamp": "2026-01-01T16:00:00Z"}}

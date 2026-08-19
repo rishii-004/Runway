@@ -1,0 +1,5 @@
+{"task": "Review src/calculator.py for bugs and generate a patch", "repo_path": "fixture_repos/calculator"}
+{"task": "Analyze the authentication module for security vulnerabilities", "repo_path": "fixture_repos/auth"}
+{"task": "Find performance issues in the database query layer", "repo_path": "fixture_repos/db_layer"}
+{"task": "Review the API rate limiter for edge cases", "repo_path": "fixture_repos/rate_limiter"}
+{"task": "Check the serialization code for injection vulnerabilities", "repo_path": "fixture_repos/serializer"}
