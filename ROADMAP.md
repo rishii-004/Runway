@@ -212,7 +212,7 @@ Goal: *an agent cannot execute a restricted tool without satisfying Forge's poli
 
 Goal: *inspect an entire run — LLM calls, tools, latency, failures, resource usage.*
 
-- [ ] **3.1 Sandbox manager.** `forge/sandbox/docker.py` — runs a command in a container via
+- [x] **3.1 Sandbox manager.** `forge/sandbox/docker.py` — runs a command in a container via
   the `docker` SDK against `settings.DOCKER_HOST` (see Podman Notes above — do not hardcode
   a socket path). Support CPU limit, memory limit, timeout, no-network option, and
   filesystem isolation (fresh container per call, no host mounts by default).
@@ -220,30 +220,30 @@ Goal: *inspect an entire run — LLM calls, tools, latency, failures, resource u
   tiny fixture repo, captures stdout/stderr/exit code, and enforces a timeout (kill a
   container that runs `sleep 999`).
 
-- [ ] **3.2 Wire sandbox into tool gateway.** Tools flagged `sandbox: true` in the registry
+- [x] **3.2 Wire sandbox into tool gateway.** Tools flagged `sandbox: true` in the registry
   execute via 3.1 instead of in-process (PRD §13 example: `run_tests()`).
   **Verify:** existing tool-gateway tests still pass; a new sandboxed tool's actual `exec`
   happens inside a container (assert via a marker file only writable inside the container).
 
-- [ ] **3.3 Execution events.** `forge/events/publisher.py` — every meaningful runtime
+- [x] **3.3 Execution events.** `forge/events/publisher.py` — every meaningful runtime
   transition (step start/end, tool call, policy decision, budget check, approval) writes a
   row to `execution_events`.
   **Verify:** run the demo agent once, query `execution_events` for that run_id, assert the
   sequence matches what actually happened (step-by-step).
 
-- [ ] **3.4 OpenTelemetry.** `forge/observability/tracing.py` — spans for
+- [x] **3.4 OpenTelemetry.** `forge/observability/tracing.py` — spans for
   `run → node → llm call → tool call → db operation → sandbox execution` (PRD §14), OTLP
   exporter configured from `OTEL_EXPORTER_OTLP_ENDPOINT`.
   **Verify:** run the demo agent with a console/OTLP exporter, confirm a single trace
   contains nested spans for at least one LLM call, one tool call, and one DB write.
 
-- [ ] **3.5 Prometheus metrics.** Instrument executor/worker/tool-gateway with the counters
+- [x] **3.5 Prometheus metrics.** Instrument executor/worker/tool-gateway with the counters
   from PRD §14 (`agent_runs_total`, `agent_run_duration`, `tool_latency`, `llm_latency`,
   `queue_depth`, `worker_utilization`, `retry_count`, `failure_rate`, `token_usage`,
   `estimated_cost`); expose `GET /metrics`.
   **Verify:** `curl localhost:8000/metrics` after a run shows non-zero values for each metric.
 
-- [ ] **3.6 Grafana provisioning.** Compose-mounted `grafana/provisioning/` with a
+- [x] **3.6 Grafana provisioning.** Compose-mounted `grafana/provisioning/` with a
   Prometheus datasource and one dashboard covering: active runs, queue depth, worker health,
   latency, failures, token usage, cost, tool performance (PRD §14).
   **Verify:** `podman compose up -d prometheus grafana`, open Grafana, dashboard renders
