@@ -159,42 +159,42 @@ persisted state.*
 
 Goal: *an agent cannot execute a restricted tool without satisfying Forge's policy.*
 
-- [ ] **2.1 Tool registry.** `forge/tools/models.py` (`ToolSpec`: name, risk, requires_approval,
+- [x] **2.1 Tool registry.** `forge/tools/models.py` (`ToolSpec`: name, risk, requires_approval,
   timeout_seconds) and `forge/tools/registry.py` (loads tool specs from YAML, exposes
   `get(name) -> ToolSpec`).
   **Verify:** unit test loads a sample YAML registry and resolves a known/unknown tool name.
 
-- [ ] **2.2 Policy engine.** `forge/policy/rules.py` (rule definitions) and
+- [x] **2.2 Policy engine.** `forge/policy/rules.py` (rule definitions) and
   `forge/policy/engine.py` (`evaluate(tool_spec, run, context) -> ALLOW|DENY|REQUIRE_APPROVAL`),
   with a "production" policy profile as the first concrete ruleset (PRD §9).
   **Verify:** unit tests for each decision branch (low-risk → ALLOW, high-risk → REQUIRE_APPROVAL,
   explicitly blocked tool → DENY).
 
-- [ ] **2.3 Tool gateway (executor).** `forge/tools/executor.py` — the **only** code path
+- [x] **2.3 Tool gateway (executor).** `forge/tools/executor.py` — the **only** code path
   that may invoke a real tool. Looks up the `ToolSpec`, asks the policy engine, then either
   executes, raises a structured permission error, or signals approval-needed. Wire the
   executor from 1.7 to call tools only through this gateway — no direct calls anywhere else.
   **Verify:** unit test asserts a DENY decision never reaches the underlying tool function
   (mock it and assert `not called`).
 
-- [ ] **2.4 Budgets.** `forge/budgets/manager.py` — tracks steps/tokens/cost/runtime per run
+- [x] **2.4 Budgets.** `forge/budgets/manager.py` — tracks steps/tokens/cost/runtime per run
   against the `budgets` table, exposes `check()` (raises/returns exceeded) and `record_usage()`.
   Wire into the executor: check before each step, record after.
   **Verify:** unit test with `max_steps=2` on a 5-step demo agent ends the run
   `BUDGET_EXCEEDED` after step 2, not step 5.
 
-- [ ] **2.5 Redis coordination.** `forge/runtime/locks.py` (or extend `executor.py`) —
+- [x] **2.5 Redis coordination.** `forge/runtime/locks.py` (or extend `executor.py`) —
   Redis-based lock so only one worker claims a given run at a time (prevents double-execution
   on redelivery), plus a simple rate limiter for tool calls if the registry marks a tool
   rate-limited.
   **Verify:** integration test — two workers race to claim the same run_id; exactly one wins.
 
-- [ ] **2.6 Cancellation (real).** Executor checks a Redis/DB cancel flag between steps and
+- [x] **2.6 Cancellation (real).** Executor checks a Redis/DB cancel flag between steps and
   halts to `CANCELLED` (upgrades the stub from 1.11).
   **Verify:** submit a long-running demo run, call `POST /runs/{id}/cancel` mid-execution,
   assert it stops within one step and status is `CANCELLED`.
 
-- [ ] **2.7 Human approval.** `approvals` table wiring, `POST /runs/{id}/approve` and
+- [x] **2.7 Human approval.** `approvals` table wiring, `POST /runs/{id}/approve` and
   `POST /runs/{id}/deny`. On `REQUIRE_APPROVAL` from the policy engine, executor persists
   checkpoint, sets `WAITING_FOR_APPROVAL`, and returns — **the worker process exits/moves on,
   it does not block** (PRD §12). Approval publishes `run.resume` to pick it back up.
@@ -202,7 +202,7 @@ Goal: *an agent cannot execute a restricted tool without satisfying Forge's poli
   reaches `WAITING_FOR_APPROVAL`, worker is free to process other runs, `POST .../approve`
   causes a (possibly different) worker to resume and complete the run.
 
-- [ ] **2.8 Phase exit test.** Add a demo tool marked `risk: high, requires_approval: true`
+- [x] **2.8 Phase exit test.** Add a demo tool marked `risk: high, requires_approval: true`
   with no approval granted → run must reach `WAITING_FOR_APPROVAL` and the tool function
   itself must never execute; granting approval must let it execute exactly once.
 

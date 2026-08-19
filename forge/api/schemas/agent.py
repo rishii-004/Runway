@@ -47,3 +47,20 @@ class RunResponse(BaseModel):
     updated_at: datetime
 
     model_config = {"from_attributes": True}
+
+
+class ApprovalResponse(BaseModel):
+    id: uuid.UUID
+    run_id: uuid.UUID
+    tool_name: str
+    arguments: dict | None = None
+    decision: str | None = None
+    decided_at: datetime | None = None
+    decided_by: str | None = None
+    created_at: datetime
+
+    model_config = {"from_attributes": True}
+
+
+class ApprovalDecision(BaseModel):
+    decided_by: str = "human"

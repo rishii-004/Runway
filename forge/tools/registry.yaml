@@ -1,0 +1,43 @@
+tools:
+  - name: read_file
+    description: Read the contents of a file from the repository
+    risk: low
+    requires_approval: false
+    timeout_seconds: 10
+
+  - name: list_directory
+    description: List files and directories at a given path
+    risk: low
+    requires_approval: false
+    timeout_seconds: 10
+
+  - name: apply_patch
+    description: Apply a diff patch to a file in the repository
+    risk: medium
+    requires_approval: false
+    timeout_seconds: 15
+
+  - name: run_tests
+    description: Run the test suite inside a sandboxed container
+    risk: medium
+    requires_approval: false
+    timeout_seconds: 120
+    sandbox: true
+
+  - name: execute_migration
+    description: Execute a database migration
+    risk: high
+    requires_approval: true
+    timeout_seconds: 60
+
+  - name: kubectl
+    description: Execute a kubectl command against the cluster
+    risk: high
+    requires_approval: true
+    timeout_seconds: 30
+
+  - name: deploy
+    description: Deploy changes to the production environment
+    risk: high
+    requires_approval: true
+    timeout_seconds: 120
