@@ -255,17 +255,17 @@ Goal: *inspect an entire run — LLM calls, tools, latency, failures, resource u
 
 Goal: *run two agent versions against the same dataset and quantitatively compare them.*
 
-- [ ] **4.1 History endpoints.** `GET /runs/{id}/events`, `GET /runs/{id}/trace` — surface
+- [x] **4.1 History endpoints.** `GET /runs/{id}/events`, `GET /runs/{id}/trace` — surface
   what 3.3/3.4 already persist.
   **Verify:** both endpoints return the events/trace for a completed demo run.
 
-- [ ] **4.2 Replay/resume.** `POST /runs/{id}/replay` — reconstruct a run's state from its
+- [x] **4.2 Replay/resume.** `POST /runs/{id}/replay` — reconstruct a run's state from its
   checkpoints and re-execute (initially: replay from the latest checkpoint; note
   "replay from checkpoint N with a different model/config" as a stretch/follow-up, don't
   block the phase on it).
   **Verify:** replay of a completed run produces an equivalent execution trail.
 
-- [ ] **4.3 Evaluation runner.** `forge/evaluation/runner.py` — loads a `tasks.jsonl`
+- [x] **4.3 Evaluation runner.** `forge/evaluation/runner.py` — loads a `tasks.jsonl`
   dataset, submits one run per task against a given agent version through the existing
   runtime (no separate execution path), waits for completion.
   `forge/evaluation/metrics.py` — aggregates success rate, tool accuracy, latency, tokens,
@@ -273,7 +273,7 @@ Goal: *run two agent versions against the same dataset and quantitatively compar
   **Verify:** run a 5-task dataset against the demo agent, get an aggregated metrics object
   back with sane values.
 
-- [ ] **4.4 Evaluation persistence & API.** `evaluations`/`evaluation_results` tables wired,
+- [x] **4.4 Evaluation persistence & API.** `evaluations`/`evaluation_results` tables wired,
   `POST /evaluations`, `GET /evaluations/{id}`.
   **Verify:** submit two evaluations (e.g. demo agent with two different budgets standing in
   for "v1"/"v2"), fetch both, diff their metrics — matches the comparison-table shape in

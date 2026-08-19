@@ -16,7 +16,13 @@ from forge.api.schemas.agent import (
     RunCreate,
     RunResponse,
 )
-from forge.storage.models import Agent, Approval, Budget, Run
+from forge.api.schemas.evaluation import (
+    CheckpointResponse,
+    EventResponse,
+    ReplayResponse,
+    TraceResponse,
+)
+from forge.storage.models import Agent, Approval, Budget, CheckpointRow, ExecutionEvent, Run
 
 router = APIRouter()
 
@@ -168,3 +174,74 @@ async def deny_run(
     await db.commit()
     await db.refresh(approval)
     return approval
+
+
+@router.get("/runs/{run_id}/events", response_model=list[EventResponse])
+async def get_run_events(run_id: uuid.UUID, db: AsyncSession = Depends(get_db)):
+    result = await db.execute(
+        select(ExecutionEvent)
+        .where(ExecutionEvent.run_id == run_id)
+        .order_by(ExecutionEvent.created_at)
+    )
+    events = result.scalars().all()
+    return events
+
+
+@router.get("/runs/{run_id}/trace", response_model=TraceResponse)
+async def get_run_trace(run_id: uuid.UUID, db: AsyncSession = Depends(get_db)):
+    run_result = await db.execute(select(Run).where(Run.id == run_id))
+    run = run_result.scalar_one_or_none()
+    if run is None:
+        raise HTTPException(status_code=404, detail="Run not found")
+
+    ckpt_result = await db.execute(
+        select(CheckpointRow)
+        .where(CheckpointRow.run_id == run_id)
+        .order_by(CheckpointRow.created_at)
+    )
+    checkpoints = ckpt_result.scalars().all()
+
+    event_result = await db.execute(
+        select(ExecutionEvent)
+        .where(ExecutionEvent.run_id == run_id)
+        .order_by(ExecutionEvent.created_at)
+    )
+    events = event_result.scalars().all()
+
+    return TraceResponse(
+        run_id=run_id,
+        checkpoints=[CheckpointResponse.model_validate(c) for c in checkpoints],
+        events=[EventResponse.model_validate(e) for e in events],
+    )
+
+
+@router.post("/runs/{run_id}/replay", response_model=ReplayResponse)
+async def replay_run(run_id: uuid.UUID, db: AsyncSession = Depends(get_db)):
+    result = await db.execute(
+        select(Run).where(Run.id == run_id)
+    )
+    run = result.scalar_one_or_none()
+    if run is None:
+        raise HTTPException(status_code=404, detail="Run not found")
+
+    if run.status not in ("COMPLETED", "FAILED", "CANCELLED", "TIMEOUT", "BUDGET_EXCEEDED"):
+        raise HTTPException(
+            status_code=400,
+            detail=f"Can only replay completed/failed runs (current: {run.status})",
+        )
+
+    run.status = "QUEUED"
+    run.error = None
+    run.result = None
+    run.current_node = None
+    run.iteration = 0
+    run.started_at = None
+    run.completed_at = None
+    await db.commit()
+    await db.refresh(run)
+
+    return ReplayResponse(
+        run_id=run_id,
+        status="QUEUED",
+        message="Run queued for replay from latest checkpoint",
+    )

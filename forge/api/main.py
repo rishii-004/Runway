@@ -2,6 +2,7 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Response
 
+from forge.api.routes.evaluations import router as evals_router
 from forge.api.routes.runs import router as runs_router
 from forge.observability.logging import setup_logging
 from forge.observability.metrics import get_metrics, get_metrics_content_type
@@ -15,6 +16,7 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(title="Forge", version="0.1.0", lifespan=lifespan)
 app.include_router(runs_router)
+app.include_router(evals_router)
 
 
 @app.get("/health")
